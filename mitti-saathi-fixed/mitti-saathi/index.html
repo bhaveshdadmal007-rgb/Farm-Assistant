@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mitti Saathi - Taluka Weather and Wind Information</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== NAVIGATION BAR ===== -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand">
+        <span class="brand-name">Mitti Saathi</span>
+        <span class="brand-tag">Agri-Weather &amp; Wind</span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#home" class="nav-link is-active">Home</a>
+        <a href="#weather-dashboard" class="nav-link">Weather Dashboard</a>
+        <a href="#farming-insights" class="nav-link">Farming Insights</a>
+        <a href="#about" class="nav-link">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===== 1. HOME: LOCATION SELECTION ===== -->
+    <section id="home" class="section">
+      <div class="container">
+        <div class="card selector-card">
+          <div class="selector-intro">
+            <p class="eyebrow"><span class="material-symbols-outlined">explore</span> Field-Level Location Filter</p>
+            <h1>Select Your Taluka for Local Weather</h1>
+            <p class="lead">Select State, District, and Taluka / Tehsil to view weather for that area.</p>
+          </div>
+
+          <form id="location-form" class="location-form" novalidate>
+            <div class="field">
+              <label for="state-select">State <span class="step">Step 01</span></label>
+              <div class="select-wrap">
+                <select id="state-select"></select>
+                <span class="material-symbols-outlined select-icon" aria-hidden="true">expand_more</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="district-select">District <span class="step">Step 02</span></label>
+              <div class="select-wrap">
+                <select id="district-select" disabled></select>
+                <span class="material-symbols-outlined select-icon" aria-hidden="true">expand_more</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="taluka-select">Taluka / Tehsil <span class="step">Step 03</span></label>
+              <div class="select-wrap">
+                <select id="taluka-select" disabled></select>
+                <span class="material-symbols-outlined select-icon" aria-hidden="true">expand_more</span>
+              </div>
+            </div>
+
+            <div class="field field-button">
+              <button type="submit" id="view-weather-btn" class="btn-primary" disabled>
+                <span class="material-symbols-outlined" aria-hidden="true">radar</span>
+                View Weather
+              </button>
+            </div>
+          </form>
+
+          <p id="location-error" class="message message-error" role="alert" hidden></p>
+
+          <div class="selected-banner">
+            <div class="selected-text">
+              <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+              <span id="selected-location-text">Select a location to see weather.</span>
+            </div>
+            <div class="updated-text">
+              <span class="material-symbols-outlined" aria-hidden="true">schedule</span>
+              <span id="last-updated-text" aria-live="polite">Not yet updated</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 2. WEATHER DASHBOARD (current weather, wind, 7-day forecast) ===== -->
+    <section id="weather-dashboard" class="section section-alt">
+      <div class="container">
+
+        <div class="section-head">
+          <h2>Current Weather</h2>
+          <span class="rule" aria-hidden="true"></span>
+          <span class="tag">Open-Meteo</span>
+        </div>
+
+        <p id="status-message" class="message message-status" role="status" hidden></p>
+
+        <div class="retry-row">
+          <button type="button" id="retry-weather-btn" class="btn-retry" hidden>Try again</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <!-- Taluka overview and metrics -->
+          <article class="card taluka-card">
+            <p class="eyebrow" id="taluka-breadcrumb">&nbsp;</p>
+            <h3 id="taluka-name" class="taluka-name">--</h3>
+            <p class="meta" id="taluka-coords">&nbsp;</p>
+
+            <div class="temp-block">
+              <div class="condition-icon">
+                <span class="material-symbols-outlined" id="condition-icon" aria-hidden="true">partly_cloudy_day</span>
+              </div>
+              <div>
+                <div class="temp-value"><span id="temp-value">--</span><span class="unit">&deg;C</span></div>
+                <div class="feels-like">Feels like <span id="feels-value">--</span>&deg;C</div>
+              </div>
+            </div>
+
+            <div class="condition-row">
+              <span class="label">Current condition</span>
+              <span id="condition-text" class="condition-text">--</span>
+            </div>
+
+            <div class="metric-grid">
+              <div class="metric">
+                <span class="label">Humidity</span>
+                <span id="humidity-value" class="metric-value">--</span>
+              </div>
+              <div class="metric">
+                <span class="label">Rainfall (current hour, mm)</span>
+                <span id="rain-value" class="metric-value">--</span>
+              </div>
+            </div>
+          </article>
+
+          <!-- Wind information -->
+          <article class="card wind-card">
+            <div class="wind-head">
+              <p class="eyebrow"><span class="material-symbols-outlined" aria-hidden="true">air</span> Wind Vector</p>
+              <h3>Wind Speed &amp; Direction</h3>
+            </div>
+
+            <div class="wind-body">
+              <div class="compass-wrap">
+                <svg id="compass" class="compass" viewBox="0 0 300 300" role="img" aria-label="Wind direction compass">
+                  <circle cx="150" cy="150" r="140" fill="none" stroke="#A8C3A0" stroke-width="3" stroke-dasharray="2 6"/>
+                  <circle cx="150" cy="150" r="132" fill="none" stroke="#2F5D3A" stroke-opacity="0.3" stroke-width="1.5"/>
+                  <circle cx="150" cy="150" r="115" fill="#FAF6EE" stroke="#E0D9C7" stroke-width="1"/>
+                  <line x1="150" y1="20" x2="150" y2="280" stroke="#2F5D3A" stroke-opacity="0.25" stroke-width="1"/>
+                  <line x1="20" y1="150" x2="280" y2="150" stroke="#2F5D3A" stroke-opacity="0.25" stroke-width="1"/>
+
+                  <line x1="150" y1="10" x2="150" y2="24" stroke="#164525" stroke-width="3"/>
+                  <line x1="290" y1="150" x2="276" y2="150" stroke="#164525" stroke-width="3"/>
+                  <line x1="150" y1="290" x2="150" y2="276" stroke="#164525" stroke-width="3"/>
+                  <line x1="10" y1="150" x2="24" y2="150" stroke="#164525" stroke-width="3"/>
+                  <line x1="242" y1="58" x2="232" y2="68" stroke="#4C6548" stroke-width="1.5"/>
+                  <line x1="242" y1="242" x2="232" y2="232" stroke="#4C6548" stroke-width="1.5"/>
+                  <line x1="58" y1="242" x2="68" y2="232" stroke="#4C6548" stroke-width="1.5"/>
+                  <line x1="58" y1="58" x2="68" y2="68" stroke="#4C6548" stroke-width="1.5"/>
+
+                  <text x="150" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#164525" font-family="Source Sans 3, sans-serif">N</text>
+                  <text x="264" y="155" text-anchor="middle" font-size="14" font-weight="700" fill="#164525" font-family="Source Sans 3, sans-serif">E</text>
+                  <text x="150" y="270" text-anchor="middle" font-size="14" font-weight="700" fill="#164525" font-family="Source Sans 3, sans-serif">S</text>
+                  <text x="36" y="155" text-anchor="middle" font-size="14" font-weight="700" fill="#164525" font-family="Source Sans 3, sans-serif">W</text>
+                  <text x="225" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#4C6548" font-family="Source Sans 3, sans-serif">NE</text>
+                  <text x="225" y="230" text-anchor="middle" font-size="11" font-weight="600" fill="#4C6548" font-family="Source Sans 3, sans-serif">SE</text>
+                  <text x="75" y="230" text-anchor="middle" font-size="11" font-weight="600" fill="#4C6548" font-family="Source Sans 3, sans-serif">SW</text>
+                  <text x="75" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#4C6548" font-family="Source Sans 3, sans-serif">NW</text>
+
+                  <!-- Wind needle: rotated in JavaScript to the wind direction -->
+                  <g id="wind-needle" transform="rotate(0 150 150)">
+                    <polygon fill="#D97B29" points="150,30 142,130 150,118 158,130"/>
+                    <polygon fill="#2F5D3A" fill-opacity="0.8" points="150,230 144,170 150,180 156,170"/>
+                    <circle cx="150" cy="150" r="10" fill="#D97B29" stroke="#FAF6EE" stroke-width="3"/>
+                  </g>
+                </svg>
+                <div class="compass-readout">
+                  <span class="label">Wind from</span>
+                  <span id="wind-degrees" class="readout-value">--</span>
+                </div>
+              </div>
+
+              <div class="wind-data">
+                <div class="wind-speed-block">
+                  <span class="label">Wind speed</span>
+                  <div class="speed-value">
+                    <span id="wind-speed" class="data-display">--</span>
+                    <span class="unit">km/h</span>
+                  </div>
+                </div>
+                <div class="wind-direction-block">
+                  <span class="label">Wind direction</span>
+                  <span id="wind-direction-text" class="direction-text">--</span>
+                </div>
+                <p class="note">Direction shows where the wind is blowing <strong>from</strong>, using the compass points N, NE, E, SE, S, SW, W and NW.</p>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- 7-day forecast -->
+        <div class="section-head forecast-head">
+          <h2>7-Day Forecast</h2>
+          <span class="rule" aria-hidden="true"></span>
+          <span class="tag">Daily</span>
+        </div>
+        <div id="forecast-grid" class="forecast-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===== 3. FARMING INSIGHTS ===== -->
+    <section id="farming-insights" class="section">
+      <div class="container">
+        <div class="section-head">
+          <h2>Weather-Based Farming Insights</h2>
+          <span class="rule" aria-hidden="true"></span>
+        </div>
+        <p class="disclaimer">
+          These are general suggestions based only on the weather data shown on this page. They are not professional agricultural advice.
+          For crop-specific decisions, consult your local agriculture officer or an agronomist.
+        </p>
+        <div id="insights-list" class="insights-list"></div>
+      </div>
+    </section>
+
+    <!-- ===== 4. ABOUT ===== -->
+    <section id="about" class="section section-alt">
+      <div class="container">
+        <div class="card about-card">
+          <h2>About Mitti Saathi</h2>
+          <p>
+            Mitti Saathi is a farming information website. It lets farmers choose their State, District and Taluka
+            and see the current weather and a 7-day forecast for that taluka, including temperature, humidity,
+            rainfall, wind speed and wind direction.
+          </p>
+          <p>
+            Weather data is retrieved from Open-Meteo using the approximate coordinates of each taluka's headquarters town.
+            The values therefore describe conditions near that town, not a measurement at a specific field.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div>
+          <h2 class="footer-title">Mitti Saathi</h2>
+          <p class="footer-text">Taluka-level weather and wind information for farmers.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Footer navigation">
+          <a href="#home">Home</a>
+          <a href="#weather-dashboard">Weather Dashboard</a>
+          <a href="#farming-insights">Farming Insights</a>
+          <a href="#about">About</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-text">Weather data powered by Open-Meteo. Website: <a href="https://open-meteo.com/">https://open-meteo.com/</a></p>
+        <p class="footer-text">&copy; 2026 Mitti Saathi</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/locations.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
